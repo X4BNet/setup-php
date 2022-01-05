@@ -88,7 +88,7 @@ self_hosted_setup() {
       add_log "$cross" "PHP" "PHP $version is not supported on self-hosted runner"
       exit 1
     else
-      self_hosted_helper >/dev/null 2>&1
+      self_hosted_helper 
     fi
   fi
 }
@@ -182,7 +182,7 @@ disable_extension() {
 # Function to disable shared extensions.
 disable_all_shared() {
   sudo sed -i.orig -E -e "/^(zend_)?extension\s*=/d" "${ini_file[@]}" "$pecl_file" 2>/dev/null || true
-  sudo find "${ini_dir:-$scan_dir}"/.. -name "*.ini" -not -path "*php.ini" -not -path "*mods-available*" -delete >/dev/null 2>&1 || true
+  sudo find "${ini_dir:-$scan_dir}"/.. -name "*.ini" -not -path "*php.ini" -not -path "*mods-available*" -delete  || true
   add_log "${tick:?}" "none" "Disabled all shared extensions"
 }
 
@@ -202,7 +202,7 @@ configure_pecl() {
       sudo "$script" config-set php_ini "${pecl_file:-${ini_file[@]}}"
       sudo "$script" channel-update "$script".php.net
     done
-    echo '' | sudo tee /tmp/pecl_config >/dev/null 2>&1
+    echo '' | sudo tee /tmp/pecl_config 
   fi
 }
 
@@ -222,8 +222,8 @@ get_pecl_version() {
 # Function to install PECL extensions and accept default options
 pecl_install() {
   local extension=$1
-  add_pecl >/dev/null 2>&1
-  yes '' 2>/dev/null | sudo pecl install -f "$extension" >/dev/null 2>&1
+  add_pecl 
+  yes '' 2>/dev/null | sudo pecl install -f "$extension" 
 }
 
 # Function to install a specific version of PECL extension.
@@ -239,7 +239,7 @@ add_pecl_extension() {
   if [ "${ext_version/-/}" = "$pecl_version" ]; then
     add_log "${tick:?}" "$extension" "Enabled"
   else
-    disable_extension_helper "$extension" >/dev/null 2>&1
+    disable_extension_helper "$extension" 
     pecl_install "$extension-$pecl_version"
     add_extension_log "$extension-$pecl_version" "Installed and enabled"
   fi
@@ -342,13 +342,13 @@ add_composertool() {
   fi
   (
     if [ "$scope" = "global" ]; then
-      sudo rm -f "$composer_lock" >/dev/null 2>&1 || true
-      composer global require "$prefix$release" 2>&1 | tee /tmp/composer.log >/dev/null 2>&1
+      sudo rm -f "$composer_lock"  || true
+      composer global require "$prefix$release" 2>&1 | tee /tmp/composer.log 
     else
       scoped_dir="$composer_bin/_tools/$tool-$(echo -n "$release" | shasum -a 256 | cut -d ' ' -f 1)"
       if ! [ -e "$scoped_dir" ]; then
         mkdir -p "$scoped_dir"
-        composer require "$prefix$release" -d "$scoped_dir" 2>&1 | tee /tmp/composer.log >/dev/null 2>&1
+        composer require "$prefix$release" -d "$scoped_dir" 2>&1 | tee /tmp/composer.log 
         export PATH=$PATH:"$scoped_dir"/vendor/bin
         echo "${tool}"_bin="$scoped_dir"/vendor/bin | sudo tee -a "$GITHUB_ENV" >/dev/null
         echo "$scoped_dir"/vendor/bin >>"$GITHUB_PATH"
