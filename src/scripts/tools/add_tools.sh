@@ -33,10 +33,10 @@ configure_composer() {
     add_log "${cross:?}" "composer" "Could not download composer"
     exit 1
   fi
-  if ! [ -d "$composer_home" ]; then
-    sudo -u "$(id -un)" -g "$(id -gn)" mkdir -p -m=00755 "$composer_home"
+  if ! [ -d "$composer_bin" ]; then
+    sudo -u "$(id -un)" -g "$(id -gn)" mkdir -p -m=00755 "$composer_bin"
   else
-    sudo chown -R "$(id -un)":"$(id -gn)" "$composer_home"
+    sudo chown -R "$(id -un)":"$(id -gn)" "$composer_bin"
   fi
   if ! [ -e "$composer_json" ]; then
     echo '{}' | tee "$composer_json" >/dev/null
@@ -71,7 +71,7 @@ add_tools_helper() {
     sudo ln -s "$tool_path" "$tool_path_dir"/phpdocumentor 2>/dev/null || true
     sudo ln -s "$tool_path" "$tool_path_dir"/phpdoc
   elif [[ "$tool" =~ phpunit(-polyfills)?$ ]]; then
-    if [ -e "$tool_path_dir"/phpunit ]; then
+    if [ -e "$tool_path_dir"/phpunit ] && [ -d "$composer_bin" ]; then
       sudo cp "$tool_path_dir"/phpunit "$composer_bin"
     fi
   elif [[ "$tool" =~ vapor-cli ]]; then
