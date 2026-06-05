@@ -9,9 +9,9 @@ add_extension_log() {
 check_extension() {
   local extension=$1
   if [ "$extension" != "mysql" ]; then
-    php -m | grep -i -q -w "$extension"
+    php -m 2>/dev/null | grep -i -q -w "$extension"
   else
-    php -m | grep -i -q "$extension"
+    php -m 2>/dev/null | grep -i -q "$extension"
   fi
 }
 
@@ -49,7 +49,7 @@ enable_extension() {
 
 # Function to get a map of extensions and their dependent shared extensions.
 get_extension_map() {
-  php -d'error_reporting=0' "${dist:?}"/../src/scripts/extensions/extension_map.php /tmp/map"$version".orig
+  php -d'display_startup_errors=0' -d'error_reporting=0' "${dist:?}"/../src/scripts/extensions/extension_map.php /tmp/map"$version".orig 2>/dev/null
 }
 
 # Function to enable extension dependencies which are also extensions.
@@ -76,9 +76,10 @@ disable_extension_dependents() {
 # Function to disable an extension.
 disable_extension() {
   local extension=$1
+  local disable_dependents=${2:-true}
   if check_extension "$extension"; then
     if shared_extension "$extension"; then
-      disable_extension_helper "$extension" true
+      disable_extension_helper "$extension" "$disable_dependents"
       (! check_extension "$extension" && add_log "${tick:?}" ":$extension" "Disabled") ||
         add_log "${cross:?}" ":$extension" "Could not disable $extension on PHP ${semver:?}"
     else
@@ -153,7 +154,7 @@ add_pecl_extension() {
   if [[ $pecl_version =~ .*(alpha|beta|rc|snapshot|preview).* ]]; then
     pecl_version=$(get_pecl_version "$extension" "$pecl_version")
   fi
-  ext_version=$(php -r "echo phpversion('$extension');")
+  ext_version=$(php -r "echo phpversion('$extension');" 2>/dev/null)
   if [ "${ext_version/-/}" = "$pecl_version" ]; then
     add_log "${tick:?}" "$extension" "Enabled"
   else

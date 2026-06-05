@@ -363,6 +363,9 @@ async function addExtensionLinux(extension_csv, version) {
             case /(5\.[3-6]|7\.0)pcov/.test(version_extension):
                 add_script += await utils.getUnsupportedLog('pcov', version, 'linux');
                 return;
+            case /^8\.[5-9]pcov$/.test(version_extension):
+                add_script += await utils.parseExtensionSource('pcov-krakjoe/pcov@develop', ext_prefix);
+                return;
             case /^7\.[2-4]xdebug2$/.test(version_extension):
                 add_script += await utils.joins('\nadd_pecl_extension', 'xdebug', '2.9.8', ext_prefix);
                 return;

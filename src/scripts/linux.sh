@@ -25,8 +25,8 @@ install_packages() {
 disable_extension_helper() {
   local extension=$1
   local disable_dependents=${2:-false}
-  get_extension_map
   if [ "$disable_dependents" = "true" ]; then
+    get_extension_map
     disable_extension_dependents "$extension"
   fi
   sudo sed -Ei "/=(.*\/)?\"?$extension(.so)?$/d" "${ini_file[@]}" "$pecl_file"
@@ -64,6 +64,26 @@ add_pdo_extension() {
     add_extension "$pdo_ext" "extension" >/dev/null 2>&1
     add_extension_log "$pdo_ext" "Enabled"
   fi
+}
+
+# Function to remove INI entries for shared extensions PHP cannot load.
+disable_broken_extensions() {
+  local warnings
+  local -a broken_extensions
+  warnings="$(php -m 2>&1 >/dev/null || true)"
+  mapfile -t broken_extensions < <(
+    printf '%s\n' "$warnings" |
+      sed -nE "s/.*Unable to load dynamic library '([^']+)'.*/\1/p" |
+      sed -E 's|.*/||; s/\.so$//' |
+      sort -u
+  )
+  [ "${#broken_extensions[@]}" -eq 0 ] && return
+
+  for extension in "${broken_extensions[@]}"; do
+    sudo sed -Ei "/=(.*\/)?\"?$extension(.so)?$/d" "${ini_file[@]}" "$pecl_file" 2>/dev/null || true
+    sudo find "$ini_dir"/.. -name "*$extension.ini" -not -path "*phar.ini" -not -path "*pecl.ini" -not -path "*mods-available*" -delete >/dev/null 2>&1 || true
+  done
+  add_log "${tick:?}" "PHP" "Disabled broken startup extensions: ${broken_extensions[*]}"
 }
 
 # Function to check if a package exists
@@ -218,6 +238,7 @@ setup_php() {
   mapfile -t ini_file < <(sudo find "$ini_dir/.." -name "php.ini" -exec readlink -m {} +)
   link_pecl_file
   configure_php
+  disable_broken_extensions
   sudo rm -rf /usr/local/bin/phpunit >/dev/null 2>&1
   sudo chmod 777 "${ini_file[@]}" "$pecl_file" "${tool_path_dir:?}"
   sudo cp "$dist"/../src/configs/pm/*.json "$RUNNER_TOOL_CACHE/"

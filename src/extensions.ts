@@ -296,6 +296,13 @@ export async function addExtensionLinux(
       case /(5\.[3-6]|7\.0)pcov/.test(version_extension):
         add_script += await utils.getUnsupportedLog('pcov', version, 'linux');
         return;
+      // match 8.5 and newer - pcov
+      case /^8\.[5-9]pcov$/.test(version_extension):
+        add_script += await utils.parseExtensionSource(
+          'pcov-krakjoe/pcov@develop',
+          ext_prefix
+        );
+        return;
       // match 7.2xdebug2...7.4xdebug2
       case /^7\.[2-4]xdebug2$/.test(version_extension):
         add_script += await utils.joins(

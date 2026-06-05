@@ -8,6 +8,7 @@ describe('Config tests', () => {
     ${'pcov'}    | ${'5.6'} | ${'win32'}  | ${'PHP 7.1 or newer is required'}
     ${'pcov'}    | ${'7.4'} | ${'win32'}  | ${'Add-Extension pcov,Disable-Extension xdebug false'}
     ${'pcov'}    | ${'7.4'} | ${'linux'}  | ${'add_extension pcov,disable_extension xdebug false'}
+    ${'pcov'}    | ${'8.5'} | ${'linux'}  | ${'add_extension_from_source pcov https://github.com krakjoe pcov develop extension'}
     ${'pcov'}    | ${'7.4'} | ${'darwin'} | ${'add_brew_extension pcov,disable_extension xdebug false'}
     ${'xdebug'}  | ${'7.4'} | ${'win32'}  | ${'Add-Extension xdebug'}
     ${'xdebug3'} | ${'7.1'} | ${'win32'}  | ${'xdebug3 is not supported on PHP 7.1'}

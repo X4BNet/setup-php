@@ -51,6 +51,7 @@ describe('Extension tests', () => {
     ${'mongodb-mongodb/mongo-php-driver@master'} | ${'7.3'} | ${'add_extension_from_source mongodb https://github.com mongodb mongo-php-driver master extension'}
     ${'oci8'}                                    | ${'7.3'} | ${'add_oci oci8'}
     ${'pcov'}                                    | ${'5.6'} | ${'add_log "$cross" "pcov" "pcov is not supported on PHP 5.6'}
+    ${'pcov'}                                    | ${'8.5'} | ${'add_extension_from_source pcov https://github.com krakjoe pcov develop extension'}
     ${'pdo-odbc'}                                | ${'7.4'} | ${'add_pdo_extension odbc'}
     ${'pdo_cubrid'}                              | ${'7.0'} | ${'add_cubrid pdo_cubrid'}
     ${'pdo_cubrid'}                              | ${'7.4'} | ${'add_pdo_extension cubrid'}
