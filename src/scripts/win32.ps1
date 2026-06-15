@@ -28,6 +28,13 @@ Function Add-Log($mark, $subject, $message) {
   }
 }
 
+# Function to set output on GitHub Actions.
+Function Add-Output($OutputName, $OutputValue) {
+  if ($env:GITHUB_OUTPUT) {
+    Add-Content "$OutputName=$OutputValue" -Path $env:GITHUB_OUTPUT -Encoding utf8
+  }
+}
+
 # Function to add a line to a powershell profile safely.
 Function Add-ToProfile {
   param(
@@ -284,5 +291,5 @@ Enable-PhpExtension -Extension $enable_extensions -Path $php_dir
 Add-PhpCAInfo
 Add-PhpConfig
 Copy-Item -Path $dist\..\src\configs\pm\*.json -Destination $env:RUNNER_TOOL_CACHE
-Write-Output "::set-output name=php-version::$($installed.FullVersion)"
+Add-Output "php-version" $installed.FullVersion
 Add-Log $tick "PHP" "$status PHP $($installed.FullVersion)$extra_version"

@@ -30,6 +30,15 @@ add_log() {
   fi
 }
 
+# Function to set output on GitHub Actions.
+set_output() {
+  name=$1
+  value=$2
+  if [ -n "$GITHUB_OUTPUT" ]; then
+    echo "$name=$value" | tee -a "$GITHUB_OUTPUT" >/dev/null 2>&1
+  fi
+}
+
 # Function to read env inputs.
 read_env() {
   update="${update:-${UPDATE:-false}}"

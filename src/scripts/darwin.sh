@@ -229,7 +229,7 @@ setup_php() {
   fi
 
   sudo cp "$dist"/../src/configs/pm/*.json "$RUNNER_TOOL_CACHE/"
-  echo "::set-output name=php-version::$semver"
+  set_output "php-version" "$semver"
   add_log "$tick" "PHP" "$status PHP $semver$extra_version"
 }
 

@@ -198,6 +198,31 @@ php_extra_version() {
   fi
 }
 
+# Function to install PHP runtime libraries missing from cached builds.
+fix_php_runtime_dependencies() {
+  local php_binary warnings
+  local -a packages=()
+  php_binary="$(command -v php"$version" || command -v php || true)"
+  [ -n "$php_binary" ] || return
+  warnings="$("$php_binary" -v 2>&1 >/dev/null || true)"
+  if echo "$warnings" | grep -q "libsodium.so.23"; then
+    packages+=(libsodium23)
+  fi
+  if [ "${#packages[@]}" -gt 0 ]; then
+    install_packages "${packages[@]}" >/dev/null 2>&1
+  fi
+}
+
+# Function to verify PHP can run before using it for setup.
+verify_php() {
+  local error
+  if ! php -v >/dev/null 2>&1; then
+    error="$(php -v 2>&1 | head -n 1)"
+    add_log "${cross:?}" "PHP" "Could not run PHP $version: $error"
+    exit 1
+  fi
+}
+
 # Function to Setup PHP
 setup_php() {
   step_log "Setup PHP"
@@ -228,8 +253,14 @@ setup_php() {
     add_log "${cross:?}" "PHP" "Could not setup PHP $version"
     exit 1
   fi
+  fix_php_runtime_dependencies
+  verify_php
   ext_dir="/usr/$(grep -Po "extension_dir=..[^/]*/\K[^'\"]*" "$php_config")"
   ini_dir="$(php_ini_path)"
+  if [ -z "$ini_dir" ]; then
+    add_log "${cross:?}" "PHP" "Could not determine php.ini path"
+    exit 1
+  fi
   scan_dir="$ini_dir"/conf.d
   pecl_file="$scan_dir"/99-pecl.ini
   semver="$(php_semver)"
@@ -242,7 +273,7 @@ setup_php() {
   sudo rm -rf /usr/local/bin/phpunit >/dev/null 2>&1
   sudo chmod 777 "${ini_file[@]}" "$pecl_file" "${tool_path_dir:?}"
   sudo cp "$dist"/../src/configs/pm/*.json "$RUNNER_TOOL_CACHE/"
-  echo "::set-output name=php-version::$semver"
+  set_output "php-version" "$semver"
   add_log "${tick:?}" "PHP" "$status PHP $semver$extra_version"
 }
 
